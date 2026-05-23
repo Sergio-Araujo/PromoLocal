@@ -62,3 +62,18 @@ Certifique-se de ter o **[Node.js](https://nodejs.org/)** instalado em sua máqu
    ```bash
    git clone [https://github.com/SEU-USUARIO/promolocal.git](https://github.com/SEU-USUARIO/promolocal.git)
    cd promolocal
+2. **Instale todas as dependências do projeto**
+   ```bash
+   npm install
+3. **Inicie o servidor de desenvolvimento do Expo**
+   ```bash
+   npx expo start
+4. **Abra e teste o aplicativo no seu dispositivo**
+   * No Android: Abra o aplicativo Expo Go no seu celular e use a opção de escanear o QR Code impresso no seu terminal.
+   * No iOS: Abra a câmera nativa do seu iPhone e aponte para o QR Code para abrir o link através do Expo Go.
+   * No Emulador: Pressione a tecla a no terminal para abrir no emulador Android ou i para abrir no emulador iOS.
+
+💡 Nota sobre o Banco de Dados (SQLite): Na primeira vez que o aplicativo for executado no dispositivo, o script de inicialização criará automaticamente o banco de dados e as tabelas usuarios e promocoes. Ele também executará uma função de Semeadura (Seed) injetando duas contas de teste reais (aluno@unibr.com e lojista@teste.com, ambas com a senha 123456) além de algumas ofertas iniciais estruturadas com coordenadas de endereço válidas para facilitar a avaliação visual dos fluxos e do mapa.
+
+📝 Licença
+Este projeto foi desenvolvido como um trabalho acadêmico de extensão para a disciplina de Desenvolvimento Mobile. Sinta-se à vontade para realizar um fork, estudar a arquitetura, propor melhorias ou utilizá-lo como referência de estudo para persistência de dados local com o Expo SQLite!
