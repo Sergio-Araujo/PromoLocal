@@ -12,7 +12,7 @@ O aplicativo possui fluxos distintos para dois tipos de usuários:
 
 ### 🏪 Para o Lojista
 * **Gestão de Perfil:** Atualização de dados da loja e endereço completo.
-* **Gerenciamento de Promoções (CRUD):** * Criação de novas ofertas com foto (Galeria), preço, validade e unidade (kg, L, un).
+* **Gerenciamento de Promoções (CRUD):**
   * Edição de ofertas existentes.
   * Pausa (inativação) rápida de promoções esgotadas.
   * Exclusão de promoções.
