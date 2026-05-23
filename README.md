@@ -49,3 +49,12 @@ Este projeto foi construído utilizando as seguintes tecnologias:
 ├── App.js                  # Ponto de entrada e navegação principal
 ├── package.json            # Dependências do projeto
 └── README.md
+
+🛠️ Como rodar o projeto
+Pré-requisitos
+Certifique-se de ter o Node.js e o aplicativo Expo Go instalados no seu celular (ou um emulador configurado).
+
+Passo a passo
+1. Clone o repositório
+git clone [https://github.com/SEU-USUARIO/promolocal.git](https://github.com/SEU-USUARIO/promolocal.git)
+cd promolocal
