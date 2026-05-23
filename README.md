@@ -1,194 +1,51 @@
-import * as SQLite from 'expo-sqlite';
+# 🛒 PromoLocal
 
-let database;
+O **PromoLocal** é um aplicativo mobile desenvolvido com React Native e Expo que tem como objetivo conectar consumidores a ofertas de comércios regionais (hortifrútis, mercados, padarias, etc.). 
 
-async function getDatabase() {
-  // Deixo o banco em uma variavel para nao abrir uma conexao nova toda hora.
-  if (!database) {
-    database = await SQLite.openDatabaseAsync('promolocal.db');
-  }
+A plataforma oferece uma vitrine digital onde os comerciantes podem gerenciar suas promoções em tempo real e os clientes podem descobrir os melhores preços na sua região, com integração direta de rotas via Google Maps.
 
-  return database;
-}
+---
 
-export async function iniciarBanco() {
-  const db = await getDatabase();
+## ✨ Funcionalidades
 
-  // Crio as tabelas principais do aplicativo: uma para loja e outra para promocoes.
-  await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS loja (
-      id INTEGER PRIMARY KEY NOT NULL,
-      nome TEXT,
-      documento TEXT,
-      tipo TEXT,
-      cep TEXT,
-      rua TEXT,
-      bairro TEXT,
-      cidade TEXT,
-      uf TEXT,
-      telefone TEXT,
-      descricao TEXT
-    );
+O aplicativo possui fluxos distintos para dois tipos de usuários:
 
-    CREATE TABLE IF NOT EXISTS promocoes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      produto TEXT NOT NULL,
-      categoria TEXT NOT NULL,
-      precoOriginal REAL NOT NULL,
-      precoPromocional REAL NOT NULL,
-      unidade TEXT NOT NULL,
-      validade TEXT NOT NULL,
-      descricao TEXT,
-      imagem TEXT,
-      ativa INTEGER DEFAULT 1,
-      lojaNome TEXT NOT NULL
-    );
-  `);
+### 🏪 Para o Lojista
+* **Gestão de Perfil:** Atualização de dados da loja e endereço completo.
+* **Gerenciamento de Promoções (CRUD):** * Criação de novas ofertas com foto (Galeria), preço, validade e unidade (kg, L, un).
+  * Edição de ofertas existentes.
+  * Pausa (inativação) rápida de promoções esgotadas.
+  * Exclusão de promoções.
 
-  await inserirDadosIniciais();
-}
+### 🛍️ Para o Cliente
+* **Feed de Ofertas:** Visualização de todas as promoções ativas na região.
+* **Busca e Filtros:** Pesquisa por nome do produto/loja e filtros por categorias (Frutas, Carnes, Limpeza, etc.) via Chips e Menu Lateral.
+* **Integração com Mapas:** Botão que abre o trajeto exato até a loja utilizando o Google Maps.
 
-async function inserirDadosIniciais() {
-  const db = await getDatabase();
-  const loja = await db.getFirstAsync('SELECT id FROM loja WHERE id = 1');
-  const total = await db.getFirstAsync('SELECT COUNT(*) as quantidade FROM promocoes');
+---
 
-  // Esses dados ajudam o app a abrir com conteudo, igual um prototipo funcional.
-  if (!loja) {
-    await db.runAsync(
-      `INSERT INTO loja
-      (id, nome, documento, tipo, cep, rua, bairro, cidade, uf, telefone, descricao)
-      VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        'Mercado Sao Vicente',
-        '12.345.678/0001-90',
-        'Supermercado',
-        '11310-000',
-        'Rua Frei Gaspar',
-        'Centro',
-        'Sao Vicente',
-        'SP',
-        '(13) 99999-0000',
-        'Mercado local com ofertas de alimentos e bebidas.'
-      ]
-    );
-  }
+## 🚀 Tecnologias Utilizadas
 
-  if (total.quantidade === 0) {
-    const exemplos = [
-      ['Banana nanica', 'Frutas', 7.99, 4.99, 'kg', '2026-06-10', 'Banana madura e selecionada para a semana.', 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?q=80&w=900&auto=format&fit=crop', 1, 'Mercado Sao Vicente'],
-      ['Cenoura', 'Legumes', 8.5, 5.99, 'kg', '2026-06-08', 'Cenoura fresca para saladas, sopas e receitas do dia a dia.', 'https://agristar.com.br/upload/blog/original/conheca-os-beneficios-da-cenoura-a-aprenda-como-cultiva-la-em-casa-06-07-2023-11-49-49-8328.jpg', 1, 'Horti Centro'],
-      ['Refrigerante coca cola', 'Bebidas', 8.99, 6.49, 'un', '2026-06-15', 'Garrafa de 2 litros com preco promocional.', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=900&auto=format&fit=crop', 1, 'Mini Mercado Praia'],
-      ['Carne moida', 'Carnes', 34.9, 27.9, 'kg', '2026-06-06', 'Oferta valida enquanto durar o estoque.', 'https://www.receitasonline.com.br/wp-content/uploads/Carne-moida-de-forno-750x422.jpg', 0, 'Acougue Popular']
-    ];
+Este projeto foi construído utilizando as seguintes tecnologias:
 
-    for (const item of exemplos) {
-      await db.runAsync(
-        `INSERT INTO promocoes
-        (produto, categoria, precoOriginal, precoPromocional, unidade, validade, descricao, imagem, ativa, lojaNome)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        item
-      );
-    }
-  }
+* **[React Native](https://reactnative.dev/)** & **[Expo](https://expo.dev/)**: Desenvolvimento multiplataforma (Android/iOS).
+* **[Expo SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/)**: Banco de dados relacional para persistência de dados local (Offline-first).
+* **Context API**: Gerenciamento de estados globais da aplicação.
+* **Expo Image Picker**: Acesso à galeria para upload de fotos dos produtos.
+* **React Native DateTimePicker**: Componente nativo para seleção de datas de validade.
+* **Linking API**: Integração com rotas do Google Maps.
 
-  // Se o banco ja existia sem foto, eu completo as imagens dos exemplos principais.
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ? AND (imagem IS NULL OR imagem = ?)',
-    ['https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?q=80&w=900&auto=format&fit=crop', 'Banana nanica', '']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ? AND (imagem IS NULL OR imagem = ?)',
-    ['https://agristar.com.br/upload/blog/original/conheca-os-beneficios-da-cenoura-a-aprenda-como-cultiva-la-em-casa-06-07-2023-11-49-49-8328.jpg', 'Cenoura', '']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET produto = ?, precoOriginal = ?, precoPromocional = ?, descricao = ?, imagem = ? WHERE produto = ?',
-    ['Cenoura', 8.5, 5.99, 'Cenoura fresca para saladas, sopas e receitas do dia a dia.', 'https://agristar.com.br/upload/blog/original/conheca-os-beneficios-da-cenoura-a-aprenda-como-cultiva-la-em-casa-06-07-2023-11-49-49-8328.jpg', 'Tomate italiano']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ? AND (imagem IS NULL OR imagem = ?)',
-    ['https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=900&auto=format&fit=crop', 'Refrigerante cola', '']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ? AND (imagem IS NULL OR imagem = ?)',
-    ['https://www.receitasonline.com.br/wp-content/uploads/Carne-moida-de-forno-750x422.jpg', 'Carne moida', '']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ?',
-    ['https://agristar.com.br/upload/blog/original/conheca-os-beneficios-da-cenoura-a-aprenda-como-cultiva-la-em-casa-06-07-2023-11-49-49-8328.jpg', 'Cenoura']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ?',
-    ['https://www.receitasonline.com.br/wp-content/uploads/Carne-moida-de-forno-750x422.jpg', 'Carne moida']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET produto = ? WHERE produto = ?',
-    ['Refrigerante Coca-Cola', 'Refrigerante cola']
-  );
+---
 
-}
-  
-export async function listarPromocoes() {
-  const db = await getDatabase();
-  return db.getAllAsync('SELECT * FROM promocoes ORDER BY ativa DESC, validade ASC');
-}
+## 📂 Estrutura do Projeto
 
-export async function buscarLoja() {
-  const db = await getDatabase();
-  return db.getFirstAsync('SELECT * FROM loja WHERE id = 1');
-}
-
-export async function salvarLoja(loja) {
-  const db = await getDatabase();
-
-  // Uso REPLACE para salvar a loja sempre no id 1, que representa o lojista logado.
-  await db.runAsync(
-    `REPLACE INTO loja
-    (id, nome, documento, tipo, cep, rua, bairro, cidade, uf, telefone, descricao)
-    VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      loja.nome,
-      loja.documento,
-      loja.tipo,
-      loja.cep,
-      loja.rua,
-      loja.bairro,
-      loja.cidade,
-      loja.uf,
-      loja.telefone,
-      loja.descricao
-    ]
-  );
-}
-
-export async function criarPromocao(promocao) {
-  const db = await getDatabase();
-
-  await db.runAsync(
-    `INSERT INTO promocoes
-    (produto, categoria, precoOriginal, precoPromocional, unidade, validade, descricao, imagem, ativa, lojaNome)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
-    [
-      promocao.produto,
-      promocao.categoria,
-      Number(promocao.precoOriginal),
-      Number(promocao.precoPromocional),
-      promocao.unidade,
-      promocao.validade,
-      promocao.descricao,
-      promocao.imagem,
-      promocao.lojaNome
-    ]
-  );
-}
-
-export async function alternarStatusPromocao(id, ativa) {
-  const db = await getDatabase();
-  // Quando o lojista toca no botao, eu apenas troco entre ativo e inativo.
-  await db.runAsync('UPDATE promocoes SET ativa = ? WHERE id = ?', [ativa ? 1 : 0, id]);
-}
-
-export async function excluirPromocao(id) {
-  const db = await getDatabase();
-  await db.runAsync('DELETE FROM promocoes WHERE id = ?', [id]);
-}
+```text
+├── assets/                 # Imagens e ícones do app
+├── src/
+│   ├── components/         # Componentes reutilizáveis (ex: PromoCard)
+│   ├── context/            # Context API (PromoContext)
+│   ├── database/           # Configuração e Queries do SQLite (promolocalDb.js)
+│   └── screens/            # Telas da aplicação (Login, Cliente, Lojista)
+├── App.js                  # Ponto de entrada e navegação principal
+├── package.json            # Dependências do projeto
+└── README.md
