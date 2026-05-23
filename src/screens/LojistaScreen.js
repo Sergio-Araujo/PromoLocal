@@ -41,11 +41,11 @@ export default function LojistaScreen() {
 
   const [abaAtual, setAbaAtual] = useState('promocoes');
 
-  // Controle de edição de promoção
+  //Controle de edição de promoção
   const [modoEdicao, setModoEdicao] = useState(false);
   const [idPromocaoEdicao, setIdPromocaoEdicao] = useState(null);
 
-  // Estados do Formulário de Promoção
+  //Estados do Formulário de Promoção
   const [produto, setProduto] = useState('');
   const [categoria, setCategoria] = useState('Frutas');
   const [precoOriginal, setPrecoOriginal] = useState('');
@@ -55,19 +55,18 @@ export default function LojistaScreen() {
   const [descricao, setDescricao] = useState('');
   const [imagemUri, setImagemUri] = useState(null);
 
-  // CORREÇÃO: Estados criados para a Aba Editar Loja persistirem dados
   const [nomeLoja, setNomeLoja] = useState('');
-  const [cnpj, setCnpj] = useState('12.345.678/0001-90'); // Valor inicial simulado
-  const [tipoComercio, setTipoComercio] = useState('Supermercado'); // Valor inicial simulado
-  const [cep, setCep] = useState('11310-000'); // Valor inicial simulado
+  const [cnpj, setCnpj] = useState('12.345.678/0001-90');
+  const [tipoComercio, setTipoComercio] = useState('Supermercado');
+  const [cep, setCep] = useState('11310-000');
   const [rua, setRua] = useState('');
   const [numero, setNumero] = useState('');
   const [bairro, setBairro] = useState('');
   const [cidade, setCidade] = useState('');
   const [uf, setUf] = useState('');
-  const [telefone, setTelefone] = useState('(13) 98765-4321'); // Valor inicial simulado
+  const [telefone, setTelefone] = useState('(13) 98765-4321');
 
-  // Estados do Calendário
+  //Estados do Calendário
   const [dataExibicao, setDataExibicao] = useState(new Date());
   const [mostrarCalendario, setMostrarCalendario] = useState(false);
 
@@ -75,7 +74,6 @@ export default function LojistaScreen() {
     (promo) => promo.lojaNome === usuario.nomeLoja
   );
 
-  // CORREÇÃO: Carrega e destrincha o endereço salvo no banco para as caixas de texto
   useEffect(() => {
     if (usuario) {
       setNomeLoja(usuario.nomeLoja || '');
@@ -215,8 +213,7 @@ export default function LojistaScreen() {
     }
   }
 
-  // --- FUNÇÕES DE RENDERIZAÇÃO DAS ABAS ---
-  // CORREÇÃO: Todos os inputs agora usagem 'value' e 'onChangeText' mapeados nos states locais
+  //FUNÇÕES DE RENDERIZAÇÃO DAS ABAS
   const renderAbaEditar = () => (
     <ScrollView
       contentContainerStyle={styles.scrollContent}

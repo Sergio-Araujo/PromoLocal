@@ -4,7 +4,7 @@ let database;
 
 async function getDatabase() {
   if (!database) {
-    // Versão 3 para aplicar a nova estrutura de tabelas com colunas de endereço completas
+    //A v4 foi utilizada para aplicar a nova estrutura de tabelas com colunas de endereço completas
     database = await SQLite.openDatabaseAsync('promolocal_v4.db');
   }
   return database;
@@ -109,7 +109,7 @@ async function inserirDadosIniciais(db) {
   }
 }
 
-// --- OPERAÇÕES DE USUÁRIO ---
+// OPERAÇÕES DE USUÁRIO
 export async function cadastrarUsuario(
   nome,
   email,
@@ -148,7 +148,7 @@ export async function atualizarEnderecoDB(email, enderecoCompleto) {
   ]);
 }
 
-// --- OPERAÇÕES DE PROMOÇÃO ---
+// OPERAÇÕES DE PROMOÇÃO
 export async function listarPromocoes() {
   const db = await getDatabase();
   return await db.getAllAsync('SELECT * FROM promocoes ORDER BY id DESC');

@@ -3,7 +3,7 @@ import { View, Text, Image, StyleSheet, Pressable, Linking } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 
 export default function PromoCard({ promocao }) {
-  // Função simples para abrir o mapa usando a URL universal do Google
+  //Função para abrir o mapa usando a URL do Google Maps
   function abrirMapa() {
     if (!promocao.endereco) return;
     const enderecoFormatado = promocao.endereco.replace(/[\s,]+/g, '+');
@@ -39,7 +39,7 @@ export default function PromoCard({ promocao }) {
         <Text style={styles.description}>{promocao.descricao}</Text>
         <Text style={styles.validity}>Validade: {promocao.validade}</Text>
 
-        {/* Box do Mapa (Fallback sem API) */}
+        {/* Box do Mapa */}
         <Pressable style={styles.mapBox} onPress={abrirMapa}>
           <View style={styles.mapFallbackTop}>
             <Ionicons name="map-outline" size={24} color="#197278" />

@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePromo } from '../context/PromoContext';
 import PromoCard from '../components/PromoCard';
 
-// Atualizamos para ter todas as categorias do aplicativo
 const CATEGORIAS = [
   'Todas',
   'Frutas',
@@ -33,7 +32,7 @@ export default function ClienteScreen() {
   // Estado para controlar se o menu lateral está aberto ou fechado
   const [menuLateralVisivel, setMenuLateralVisivel] = useState(false);
 
-  // Filtra as promoções com base na busca e na categoria
+  // Filtro de promoções com base na busca e na categoria
   const promocoesFiltradas = promocoes.filter((promo) => {
     if (!promo.ativa) return false;
 
@@ -51,12 +50,12 @@ export default function ClienteScreen() {
 
   function selecionarCategoria(cat) {
     setCategoriaSelecionada(cat);
-    setMenuLateralVisivel(false); // Fecha o menu automaticamente ao escolher
+    setMenuLateralVisivel(false);
   }
 
   return (
     <View style={styles.container}>
-      {/* MENU LATERAL (DRAWER SIMULADO COM MODAL) */}
+      {/* MENU LATERAL */}
       <Modal
         visible={menuLateralVisivel}
         transparent={true}
@@ -143,7 +142,7 @@ export default function ClienteScreen() {
           />
         </View>
 
-        {/* Filtros Rápidos Horizontais (Sincronizados com o Menu Lateral) */}
+        {/* Implementação de um Quick Filters na Horizontal */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -167,7 +166,7 @@ export default function ClienteScreen() {
           ))}
         </ScrollView>
 
-        {/* Título da Lista e Contador */}
+        {/* Título da Lista */}
         <View style={styles.listHeader}>
           <Text style={styles.listTitle}>Ofertas encontradas</Text>
           <Text style={styles.listCount}>
@@ -176,7 +175,7 @@ export default function ClienteScreen() {
           </Text>
         </View>
 
-        {/* Lista de Cards */}
+        {/* Lista dos Cards */}
         {promocoesFiltradas.map((promo) => (
           <PromoCard key={promo.id} promocao={promo} />
         ))}
@@ -217,10 +216,10 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: 'rgba(15, 23, 42, 0.6)', // Fundo escuro semi-transparente
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
   },
   modalCloseArea: {
-    flex: 1, // Preenche o resto da tela para detectar o clique fora do menu
+    flex: 1,
   },
   drawer: {
     width: '70%',
@@ -273,7 +272,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
-  // ESTILOS ORIGINAIS DO RESTO DA TELA
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -19,14 +19,12 @@ export default function LoginScreen() {
   const [modoCadastro, setModoCadastro] = useState(false);
   const [isLojista, setIsLojista] = useState(false);
 
-  // Estados dos campos do formulário
   const [nome, setNome] = useState('');
   const [nomeLoja, setNomeLoja] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
   async function handleAcaoPrincipal() {
-    // Validação de campos obrigatórios
     if (!email || !senha || (modoCadastro && !nome)) {
       Alert.alert(
         'Atenção',
@@ -41,20 +39,17 @@ export default function LoginScreen() {
           Alert.alert('Atenção', 'Por favor, informe o nome da sua loja.');
           return;
         }
-        // Executa o cadastro real no SQLite
         await cadastrar(nome, email, senha, isLojista, nomeLoja);
         Alert.alert(
           'Sucesso',
           'Conta criada com sucesso! Faça login para entrar.'
         );
         setModoCadastro(false);
-        setSenha(''); // Limpa a senha por segurança
+        setSenha('');
       } else {
-        // Faz o login real validando e-mail E senha no SQLite
         await login(email, senha);
       }
     } catch (error) {
-      // Se errar a senha ou o e-mail não existir, o erro do banco será exibido aqui
       Alert.alert('Erro de Autenticação', error.message);
     }
   }
@@ -86,7 +81,7 @@ export default function LoginScreen() {
 
         {modoCadastro && (
           <>
-            {/* Seletor de Tipo de Conta */}
+            {/* Seletor para o Tipo de Conta */}
             <View style={styles.tipoContaContainer}>
               <Pressable
                 style={[styles.tipoBtn, !isLojista && styles.tipoBtnActive]}
