@@ -3,31 +3,25 @@ import * as SQLite from 'expo-sqlite';
 let database;
 
 async function getDatabase() {
-  // Deixo o banco em uma variavel para nao abrir uma conexao nova toda hora.
   if (!database) {
-    database = await SQLite.openDatabaseAsync('promolocal.db');
+    // Versão 3 para aplicar a nova estrutura de tabelas com colunas de endereço completas
+    database = await SQLite.openDatabaseAsync('promolocal_v4.db');
   }
-
   return database;
 }
 
 export async function iniciarBanco() {
   const db = await getDatabase();
 
-  // Crio as tabelas principais do aplicativo: uma para loja e outra para promocoes.
   await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS loja (
-      id INTEGER PRIMARY KEY NOT NULL,
-      nome TEXT,
-      documento TEXT,
-      tipo TEXT,
-      cep TEXT,
-      rua TEXT,
-      bairro TEXT,
-      cidade TEXT,
-      uf TEXT,
-      telefone TEXT,
-      descricao TEXT
+    CREATE TABLE IF NOT EXISTS usuarios (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      senha TEXT NOT NULL,
+      tipo TEXT NOT NULL,
+      nomeLoja TEXT,
+      endereco TEXT
     );
 
     CREATE TABLE IF NOT EXISTS promocoes (
@@ -41,154 +35,172 @@ export async function iniciarBanco() {
       descricao TEXT,
       imagem TEXT,
       ativa INTEGER DEFAULT 1,
-      lojaNome TEXT NOT NULL
+      lojaNome TEXT NOT NULL,
+      endereco TEXT
     );
   `);
 
-  await inserirDadosIniciais();
+  await inserirDadosIniciais(db);
 }
 
-async function inserirDadosIniciais() {
-  const db = await getDatabase();
-  const loja = await db.getFirstAsync('SELECT id FROM loja WHERE id = 1');
-  const total = await db.getFirstAsync('SELECT COUNT(*) as quantidade FROM promocoes');
+async function inserirDadosIniciais(db) {
+  const qtdUsuarios = await db.getFirstAsync(
+    'SELECT COUNT(*) as qtd FROM usuarios'
+  );
 
-  // Esses dados ajudam o app a abrir com conteudo, igual um prototipo funcional.
-  if (!loja) {
+  if (qtdUsuarios.qtd === 0) {
+    // Cliente de teste
     await db.runAsync(
-      `INSERT INTO loja
-      (id, nome, documento, tipo, cep, rua, bairro, cidade, uf, telefone, descricao)
-      VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      'INSERT INTO usuarios (nome, email, senha, tipo, nomeLoja, endereco) VALUES (?, ?, ?, ?, ?, ?)',
+      ['Aluno UniBR', 'aluno@unibr.com', '123456', 'cliente', '', '']
+    );
+    // Lojista de teste já com um endereço real estruturado para o mapa
+    await db.runAsync(
+      'INSERT INTO usuarios (nome, email, senha, tipo, nomeLoja, endereco) VALUES (?, ?, ?, ?, ?, ?)',
       [
-        'Mercado Sao Vicente',
-        '12.345.678/0001-90',
-        'Supermercado',
-        '11310-000',
-        'Rua Frei Gaspar',
-        'Centro',
-        'Sao Vicente',
-        'SP',
-        '(13) 99999-0000',
-        'Mercado local com ofertas de alimentos e bebidas.'
+        'Lojista Teste',
+        'lojista@teste.com',
+        '123456',
+        'lojista',
+        'Horti Centro',
+        'Praça Barão do Rio Branco, 15, Centro, São Vicente - SP',
       ]
     );
   }
 
-  if (total.quantidade === 0) {
-    const exemplos = [
-      ['Banana nanica', 'Frutas', 7.99, 4.99, 'kg', '2026-06-10', 'Banana madura e selecionada para a semana.', 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?q=80&w=900&auto=format&fit=crop', 1, 'Mercado Sao Vicente'],
-      ['Cenoura', 'Legumes', 8.5, 5.99, 'kg', '2026-06-08', 'Cenoura fresca para saladas, sopas e receitas do dia a dia.', 'https://agristar.com.br/upload/blog/original/conheca-os-beneficios-da-cenoura-a-aprenda-como-cultiva-la-em-casa-06-07-2023-11-49-49-8328.jpg', 1, 'Horti Centro'],
-      ['Refrigerante coca cola', 'Bebidas', 8.99, 6.49, 'un', '2026-06-15', 'Garrafa de 2 litros com preco promocional.', 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=900&auto=format&fit=crop', 1, 'Mini Mercado Praia'],
-      ['Carne moida', 'Carnes', 34.9, 27.9, 'kg', '2026-06-06', 'Oferta valida enquanto durar o estoque.', 'https://www.receitasonline.com.br/wp-content/uploads/Carne-moida-de-forno-750x422.jpg', 0, 'Acougue Popular']
-    ];
+  const qtdPromocoes = await db.getFirstAsync(
+    'SELECT COUNT(*) as qtd FROM promocoes'
+  );
 
-    for (const item of exemplos) {
-      await db.runAsync(
-        `INSERT INTO promocoes
-        (produto, categoria, precoOriginal, precoPromocional, unidade, validade, descricao, imagem, ativa, lojaNome)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        item
-      );
-    }
+  if (qtdPromocoes.qtd === 0) {
+    await db.runAsync(
+      `INSERT INTO promocoes (produto, categoria, precoOriginal, precoPromocional, unidade, validade, descricao, imagem, ativa, lojaNome, endereco) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
+      [
+        'Cenoura',
+        'Legumes',
+        8.5,
+        5.99,
+        'kg',
+        '08/06/2026',
+        'Cenoura fresca para saladas, sopas e receitas do dia a dia.',
+        'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?q=80&w=900&auto=format&fit=crop',
+        'Horti Centro',
+        'Praça Barão do Rio Branco, 15, Centro, São Vicente - SP',
+      ]
+    );
+
+    await db.runAsync(
+      `INSERT INTO promocoes (produto, categoria, precoOriginal, precoPromocional, unidade, validade, descricao, imagem, ativa, lojaNome, endereco) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
+      [
+        'Banana Nanica',
+        'Frutas',
+        7.99,
+        4.99,
+        'kg',
+        '10/06/2026',
+        'Banana madura e selecionada para a semana.',
+        'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?q=80&w=900&auto=format&fit=crop',
+        'Mercado São Vicente',
+        'Rua Frei Gaspar, Centro, São Vicente, SP',
+      ]
+    );
+  }
+}
+
+// --- OPERAÇÕES DE USUÁRIO ---
+export async function cadastrarUsuario(
+  nome,
+  email,
+  senha,
+  tipo,
+  nomeLoja = ''
+) {
+  const db = await getDatabase();
+  const verifica = await db.getFirstAsync(
+    'SELECT id FROM usuarios WHERE email = ?',
+    [email]
+  );
+  if (verifica) {
+    throw new Error('Este e-mail já está em uso.');
   }
 
-  // Se o banco ja existia sem foto, eu completo as imagens dos exemplos principais.
   await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ? AND (imagem IS NULL OR imagem = ?)',
-    ['https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?q=80&w=900&auto=format&fit=crop', 'Banana nanica', '']
+    'INSERT INTO usuarios (nome, email, senha, tipo, nomeLoja, endereco) VALUES (?, ?, ?, ?, ?, ?)',
+    [nome, email, senha, tipo, nomeLoja, '']
   );
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ? AND (imagem IS NULL OR imagem = ?)',
-    ['https://agristar.com.br/upload/blog/original/conheca-os-beneficios-da-cenoura-a-aprenda-como-cultiva-la-em-casa-06-07-2023-11-49-49-8328.jpg', 'Cenoura', '']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET produto = ?, precoOriginal = ?, precoPromocional = ?, descricao = ?, imagem = ? WHERE produto = ?',
-    ['Cenoura', 8.5, 5.99, 'Cenoura fresca para saladas, sopas e receitas do dia a dia.', 'https://agristar.com.br/upload/blog/original/conheca-os-beneficios-da-cenoura-a-aprenda-como-cultiva-la-em-casa-06-07-2023-11-49-49-8328.jpg', 'Tomate italiano']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ? AND (imagem IS NULL OR imagem = ?)',
-    ['https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=900&auto=format&fit=crop', 'Refrigerante cola', '']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ? AND (imagem IS NULL OR imagem = ?)',
-    ['https://www.receitasonline.com.br/wp-content/uploads/Carne-moida-de-forno-750x422.jpg', 'Carne moida', '']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ?',
-    ['https://agristar.com.br/upload/blog/original/conheca-os-beneficios-da-cenoura-a-aprenda-como-cultiva-la-em-casa-06-07-2023-11-49-49-8328.jpg', 'Cenoura']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET imagem = ? WHERE produto = ?',
-    ['https://www.receitasonline.com.br/wp-content/uploads/Carne-moida-de-forno-750x422.jpg', 'Carne moida']
-  );
-  await db.runAsync(
-    'UPDATE promocoes SET produto = ? WHERE produto = ?',
-    ['Refrigerante Coca-Cola', 'Refrigerante cola']
-  );
-
 }
-  
+
+export async function autenticarUsuario(email, senha) {
+  const db = await getDatabase();
+  return await db.getFirstAsync(
+    'SELECT id, nome, email, tipo, nomeLoja, endereco FROM usuarios WHERE email = ? AND senha = ?',
+    [email, senha]
+  );
+}
+
+export async function atualizarEnderecoDB(email, enderecoCompleto) {
+  const db = await getDatabase();
+  await db.runAsync('UPDATE usuarios SET endereco = ? WHERE email = ?', [
+    enderecoCompleto,
+    email,
+  ]);
+}
+
+// --- OPERAÇÕES DE PROMOÇÃO ---
 export async function listarPromocoes() {
   const db = await getDatabase();
-  return db.getAllAsync('SELECT * FROM promocoes ORDER BY ativa DESC, validade ASC');
+  return await db.getAllAsync('SELECT * FROM promocoes ORDER BY id DESC');
 }
 
-export async function buscarLoja() {
+export async function adicionarPromocaoDB(promo) {
   const db = await getDatabase();
-  return db.getFirstAsync('SELECT * FROM loja WHERE id = 1');
-}
-
-export async function salvarLoja(loja) {
-  const db = await getDatabase();
-
-  // Uso REPLACE para salvar a loja sempre no id 1, que representa o lojista logado.
   await db.runAsync(
-    `REPLACE INTO loja
-    (id, nome, documento, tipo, cep, rua, bairro, cidade, uf, telefone, descricao)
-    VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO promocoes (produto, categoria, precoOriginal, precoPromocional, unidade, validade, descricao, imagem, ativa, lojaNome, endereco)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
     [
-      loja.nome,
-      loja.documento,
-      loja.tipo,
-      loja.cep,
-      loja.rua,
-      loja.bairro,
-      loja.cidade,
-      loja.uf,
-      loja.telefone,
-      loja.descricao
+      promo.produto,
+      promo.categoria,
+      promo.precoOriginal,
+      promo.precoPromocional,
+      promo.unidade,
+      promo.validade,
+      promo.descricao,
+      promo.imagem,
+      promo.lojaNome,
+      promo.endereco,
     ]
   );
 }
 
-export async function criarPromocao(promocao) {
+export async function editarPromocaoDB(id, promo) {
   const db = await getDatabase();
-
   await db.runAsync(
-    `INSERT INTO promocoes
-    (produto, categoria, precoOriginal, precoPromocional, unidade, validade, descricao, imagem, ativa, lojaNome)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
+    `UPDATE promocoes SET produto=?, categoria=?, precoOriginal=?, precoPromocional=?, unidade=?, validade=?, descricao=?, imagem=? WHERE id=?`,
     [
-      promocao.produto,
-      promocao.categoria,
-      Number(promocao.precoOriginal),
-      Number(promocao.precoPromocional),
-      promocao.unidade,
-      promocao.validade,
-      promocao.descricao,
-      promocao.imagem,
-      promocao.lojaNome
+      promo.produto,
+      promo.categoria,
+      promo.precoOriginal,
+      promo.precoPromocional,
+      promo.unidade,
+      promo.validade,
+      promo.descricao,
+      promo.imagem,
+      id,
     ]
   );
 }
 
-export async function alternarStatusPromocao(id, ativa) {
+export async function alternarStatusDB(id, statusAtual) {
   const db = await getDatabase();
-  // Quando o lojista toca no botao, eu apenas troco entre ativo e inativo.
-  await db.runAsync('UPDATE promocoes SET ativa = ? WHERE id = ?', [ativa ? 1 : 0, id]);
+  await db.runAsync('UPDATE promocoes SET ativa = ? WHERE id = ?', [
+    statusAtual ? 0 : 1,
+    id,
+  ]);
 }
 
-export async function excluirPromocao(id) {
+export async function removerPromocaoDB(id) {
   const db = await getDatabase();
   await db.runAsync('DELETE FROM promocoes WHERE id = ?', [id]);
 }
